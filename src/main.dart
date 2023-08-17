@@ -59,10 +59,36 @@ class _MainPageState extends State<MainPage> {
         return entity is File && (entity.path.endsWith(".png") || entity.path.endsWith(".jpg"));
       }).map((e) => e as File).toList();
 
+      // Сортировка файлов по имени, учитывая порядок чисел
+      imageFiles.sort((a, b) {
+        return _naturalSort(a.path, b.path);
+      });
+
       tagController.addImages(imageFiles);
     } catch (e) {
       print('Error loading images: $e');
     }
+  }
+
+  int _naturalSort(String a, String b) {
+    final regExp = RegExp(r'(\d+)|(\D+)'); // Разбивает строку на числовые и нечисловые части
+    final partsA = regExp.allMatches(a).map((m) => m.group(0)!).toList();
+    final partsB = regExp.allMatches(b).map((m) => m.group(0)!).toList();
+
+    for (int i = 0; i < partsA.length && i < partsB.length; i++) {
+      final partA = partsA[i];
+      final partB = partsB[i];
+
+      if (partA == partB) continue;
+
+      if (int.tryParse(partA) != null && int.tryParse(partB) != null) {
+        return int.parse(partA).compareTo(int.parse(partB));
+      }
+
+      return partA.compareTo(partB);
+    }
+
+    return partsA.length.compareTo(partsB.length);
   }
 
   saveImageTags(String destinationFolder) async {
